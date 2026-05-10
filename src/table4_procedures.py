@@ -166,20 +166,46 @@ def _blank_visit_values(visit_columns: List[str]) -> dict[str, str]:
     return {col: "" for col in visit_columns}
 
 
+def _normalize_visit_marker(value: str) -> str:
+    marker = " ".join((value or "").split()).strip()
+    if not marker:
+        return ""
+
+    marker_l = marker.lower()
+    if marker_l in {"x", "yes", "y", "1", "true"}:
+        return "X"
+
+    return marker
+
+
+def _normalize_visit_values(raw_values: dict, visit_columns: List[str]) -> dict[str, str]:
+    normalized = _blank_visit_values(visit_columns)
+
+    for visit_id in visit_columns:
+        normalized[visit_id] = _normalize_visit_marker(str((raw_values or {}).get(visit_id, "")))
+
+    return normalized
+
+
 def _dedupe_preserve_order(rows: List[Table4ProcedureRow]) -> List[Table4ProcedureRow]:
-    seen = set()
-    out: List[Table4ProcedureRow] = []
+    seen: dict[str, Table4ProcedureRow] = {}
+    order: List[str] = []
 
     for row in rows:
         key = row.procedure.strip().lower()
         if not key:
             continue
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(row)
 
-    return out
+        if key in seen:
+            existing = seen[key]
+            for visit_id, marker in (row.visit_values or {}).items():
+                if _normalize_visit_marker(marker):
+                    existing.visit_values[visit_id] = _normalize_visit_marker(marker)
+            continue
+        seen[key] = row
+        order.append(key)
+
+    return [seen[key] for key in order]
 
 
 def _split_special_rows(rows: List[Table4ProcedureRow], visit_columns: List[str]) -> List[Table4ProcedureRow]:
@@ -193,7 +219,7 @@ def _split_special_rows(rows: List[Table4ProcedureRow], visit_columns: List[str]
                     code="",
                     unit_basis="Per Procedure",
                     budget="",
-                    visit_values=_blank_visit_values(visit_columns),
+                    visit_values=dict(row.visit_values or _blank_visit_values(visit_columns)),
                 )
             )
             out.append(
@@ -202,7 +228,7 @@ def _split_special_rows(rows: List[Table4ProcedureRow], visit_columns: List[str]
                     code="",
                     unit_basis="Per Assessment",
                     budget="",
-                    visit_values=_blank_visit_values(visit_columns),
+                    visit_values=dict(row.visit_values or _blank_visit_values(visit_columns)),
                 )
             )
             continue
@@ -339,7 +365,7 @@ def extract_table4_procedures(
                 code="",
                 unit_basis=unit_basis,
                 budget="",
-                visit_values=_blank_visit_values(visit_columns),
+                visit_values=_normalize_visit_values(item.get("visit_values", {}) or {}, visit_columns),
             )
         )
 

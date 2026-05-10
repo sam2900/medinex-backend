@@ -53,7 +53,9 @@ Goal:
 Important output rules:
 1. Keep "code" blank for every row.
 2. Keep "budget" blank for every row.
-3. Keep all visit column values blank for every row.
+3. For each procedure row, mark the visit columns where that procedure occurs.
+   - Use "X" when the procedure is performed at that visit.
+   - Use "" when it is not performed at that visit.
 4. Decide "unit_basis" as either:
    - "Per Assessment"
    - "Per Procedure"
@@ -61,7 +63,8 @@ Important output rules:
 6. Do not output duplicate procedures.
 7. Preserve a sensible study workflow order.
 8. Do NOT include footer rows like blank rows or Procedures Sub-Total. Python will add those later.
-9. Return visit_values keys for all visit columns provided below, but leave each value blank.
+9. Return visit_values keys for all visit columns provided below.
+10. Do not mark a visit unless the evidence supports that the procedure occurs there.
 
 Strong normalization guidance:
 - Prefer these canonical procedure names when supported:

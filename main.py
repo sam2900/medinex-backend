@@ -282,9 +282,18 @@ def main() -> None:
             use_llm_fallback=args.use_llm,
         )
 
+        table4 = extract_table4_procedures(
+            pdf_name=pdf_path.name,
+            retriever=retriever,
+            table3=table3,
+            top_k=args.top_k,
+            use_llm_fallback=args.use_llm,
+        )
+
         table5 = extract_table5_non_procedures(
             pdf_name=pdf_path.name,
             table3=table3,
+            table4=table4,
         )
 
         result_path = output_dir / f"{pdf_path.stem}_table5_result.json"
@@ -417,6 +426,7 @@ def main() -> None:
         table5 = extract_table5_non_procedures(
             pdf_name=pdf_path.name,
             table3=table3,
+            table4=table4,
         )
         print_and_save_table("Table5", table5, output_dir)
 

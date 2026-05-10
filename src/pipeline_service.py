@@ -68,6 +68,7 @@ def run_protocol_pipeline(
     table5 = extract_table5_non_procedures(
         pdf_name=pdf_path.name,
         table3=table3,
+        table4=table4,
     )
 
     table6 = extract_table6_site_fees(
